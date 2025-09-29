@@ -18,5 +18,9 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     fullname: Mapped[str | None] = mapped_column(String(100), nullable=True)
     nickname: Mapped[str] = mapped_column(String(20))
-    
+    events: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    groups: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    friendships: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    invitions: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    comments: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
     
