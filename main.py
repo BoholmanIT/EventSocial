@@ -25,6 +25,13 @@ user_events = Table(
     Column("event_id", ForeignKey("events.id"), primary_key=True)
 )
 
+user_group = Table(
+    "user_group",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("event_id", ForeignKey("groups.id"), primary_key=True)
+)
+
 class Event(Base):
     __tablename__ = "events"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -34,7 +41,7 @@ class Event(Base):
     user_in_event = relationship(
         "User",
         secondary=user_events,
-        back_populates="user_in_event"
+        back_populates="events"
     )
     date_event: Mapped[date] = mapped_column(Date, nullable=False)
     datetime_event: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
@@ -52,7 +59,11 @@ class User(Base):
         secondary=user_events,
         back_populates="user_in_event"
     )
-    groups: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    groups = relationship(
+        "Group",
+        secondary=user_group,
+        back_populates="user_in_group"
+    )
     friends: Mapped[List["User"]] = relationship(
         "User", 
         secondary=friendships, 
@@ -62,5 +73,16 @@ class User(Base):
     )
     invitions: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
     comments: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    
+class Group(Base):
+    __tablename__ = "groups"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    desc: Mapped[str | None] = mapped_column(nullable=True)
+    user_in_group = relationship(
+        "User",
+        secondary=user_group,
+        back_populates="groups"
+    )
     
 
