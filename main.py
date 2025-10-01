@@ -84,5 +84,3 @@ class Group(Base):
         secondary=user_group,
         back_populates="groups"
     )
-    
-
