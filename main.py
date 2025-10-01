@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column
+from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from typing import List
@@ -17,12 +17,27 @@ friendships = Table(
     Column("user_id", ForeignKey("users.id"), primary_key=True),
     Column("friend_id", ForeignKey("users.id"), primary_key=True)
 )
+
+user_events = Table(
+    "user_events",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("event_id", ForeignKey("events.id"), primary_key=True)
+)
+
 class Event(Base):
     __tablename__ = "events"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     place: Mapped[str] = mapped_column(String(200), nullable=False)
-    decs: Mapped[str | None]
+    decs: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    user_in_event = relationship(
+        "User",
+        secondary=user_events,
+        back_populates="user_in_event"
+    )
+    date_event: Mapped[date] = mapped_column(Date, nullable=False)
+    datetime_event: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
 class User(Base):
     __tablename__ = "users"
@@ -32,7 +47,11 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     fullname: Mapped[str | None] = mapped_column(String(100), nullable=True)
     nickname: Mapped[str] = mapped_column(String(20))
-    events: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    events = relationship(
+        "Event",
+        secondary=user_events,
+        back_populates="user_in_event"
+    )
     groups: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
     friends: Mapped[List["User"]] = relationship(
         "User", 
