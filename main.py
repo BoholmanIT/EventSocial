@@ -50,6 +50,7 @@ class Event(Base):
         back_populates="events"
     )
     invitations = relationship("Invitation", back_populates="event")
+    comments = relationship("Comment", back_populates="event")
     date_event: Mapped[date] = mapped_column(Date, nullable=False)
     datetime_event: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
@@ -63,6 +64,15 @@ class Invitation(Base):
     event = relationship("Event", back_populates="invitations")
     invited_user = relationship("User", back_populates="recieved_invatat")
     inviter_user = relationship("User", back_populates="sent_user") 
+    
+class Comment(Base):
+    __tablename__ = "comments"
+    id: Mapped[int] = mapped_column(Integer, nullable=False)
+    commenter_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    comment_event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
+    text: Mapped[str] = mapped_column(String(500), nullable=False)
+    commenter_user = relationship("User", back_populates="comments")
+    event = relationship("Event", back_populates="comments")
     
 class User(Base):
     __tablename__ = "users"
@@ -91,7 +101,7 @@ class User(Base):
     )
     recieved_invat = relationship("Invitation", foreign_keys=[Invitation.invited_user_id], back_populates="invited_user")
     sent_user = relationship("Invitation", foreign_keys=[Invitation.inviter_user_id], back_populates="inviter_user")
-    comments: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    comments= relationship("Comments", foreign_keys=[Comment.commenter_user_id], back_populates="commenter_user")
     
 class Group(Base):
     __tablename__ = "groups"
@@ -104,4 +114,5 @@ class Group(Base):
         back_populates="groups"
     )
     
-    
+
+     
