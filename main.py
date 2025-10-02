@@ -91,7 +91,7 @@ class User(Base):
     )
     recieved_invat = relationship("Invitation", foreign_keys=[Invitation.invited_user_id], back_populates="invited_user")
     sent_user = relationship("Invitation", foreign_keys=[Invitation.inviter_user_id], back_populates="inviter_user")
-    comments: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    comments_user_id: Mapped[int] = mapped_column("Comments", )
     
 class Group(Base):
     __tablename__ = "groups"
@@ -104,4 +104,10 @@ class Group(Base):
         back_populates="groups"
     )
     
-    
+class Comment(Base):
+    __tablename__ = "comments"
+    id: Mapped[int] = mapped_column(Integer, nullable=False)
+    commenter_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    comment_event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
+    text: Mapped[str] = mapped_column(String(500), nullable=False)
+     
