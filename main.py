@@ -1,8 +1,9 @@
-from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime
+from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime, Enum
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from typing import List
 from datetime import date, datetime
+import enum
 
 DATABASE_URL = "postgresql+psycopg2://myuser:mypassword@localhost:5432/mydatabase"
 engine = create_engine(DATABASE_URL)
@@ -10,6 +11,10 @@ engine = create_engine(DATABASE_URL)
 class Base(DeclarativeBase):
     pass
 
+class Status(enum.Enum):
+    pending = "pending"
+    accepted = "accepted"
+    declined = "declined"
 
 friendships = Table(
     "friendships",
@@ -29,8 +34,9 @@ user_group = Table(
     "user_group",
     Base.metadata,
     Column("user_id", ForeignKey("users.id"), primary_key=True),
-    Column("event_id", ForeignKey("groups.id"), primary_key=True)
+    Column("group_id", ForeignKey("groups.id"), primary_key=True)
 )
+
 
 class Event(Base):
     __tablename__ = "events"
@@ -43,8 +49,20 @@ class Event(Base):
         secondary=user_events,
         back_populates="events"
     )
+    invitations = relationship("Invitation", back_populates="event")
     date_event: Mapped[date] = mapped_column(Date, nullable=False)
     datetime_event: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+class Invitation(Base):
+    __tablename__ = "invitations"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    event_id: Mapped[int] = mapped_column("events.id", nullable=False)
+    invited_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    inviter_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
+    
+    event = relationship("Event", back_populates="invitations")
+    invited_user = relationship("User", back_populates="recieved_invatat")
+    inviter_user = relationship("User", back_populates="sent_user") 
     
 class User(Base):
     __tablename__ = "users"
@@ -71,7 +89,8 @@ class User(Base):
         secondaryjoin=id == friendships.c.friend_id, 
         backref="friends_back"
     )
-    invitions: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
+    recieved_invat = relationship("Invitation", foreign_keys=[Invitation.invited_user_id], back_populates="invited_user")
+    sent_user = relationship("Invitation", foreign_keys=[Invitation.inviter_user_id], back_populates="inviter_user")
     comments: Mapped[List[str]] = mapped_column(ARRAY(String), default=[])
     
 class Group(Base):
@@ -84,3 +103,5 @@ class Group(Base):
         secondary=user_group,
         back_populates="groups"
     )
+    
+    
