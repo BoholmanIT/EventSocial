@@ -70,6 +70,7 @@ class Comment(Base):
     commenter_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     comment_event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
     text: Mapped[str] = mapped_column(String(500), nullable=False)
+    commenter_user = relationship("User", back_populates="comments")
     
 class User(Base):
     __tablename__ = "users"
@@ -98,7 +99,7 @@ class User(Base):
     )
     recieved_invat = relationship("Invitation", foreign_keys=[Invitation.invited_user_id], back_populates="invited_user")
     sent_user = relationship("Invitation", foreign_keys=[Invitation.inviter_user_id], back_populates="inviter_user")
-    comments_user_id: Mapped[int] = mapped_column("Comments", )
+    comments= relationship("Comments", foreign_keys=[Comment.commenter_user_id], back_populates="commenter_user")
     
 class Group(Base):
     __tablename__ = "groups"
