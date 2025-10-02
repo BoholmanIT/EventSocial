@@ -50,6 +50,7 @@ class Event(Base):
         back_populates="events"
     )
     invitations = relationship("Invitation", back_populates="event")
+    comments = relationship("Comment", back_populates="event")
     date_event: Mapped[date] = mapped_column(Date, nullable=False)
     datetime_event: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
@@ -71,6 +72,7 @@ class Comment(Base):
     comment_event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
     text: Mapped[str] = mapped_column(String(500), nullable=False)
     commenter_user = relationship("User", back_populates="comments")
+    event = relationship("Event", back_populates="comments")
     
 class User(Base):
     __tablename__ = "users"
