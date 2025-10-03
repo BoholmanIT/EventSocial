@@ -8,6 +8,9 @@ import enum
 DATABASE_URL = "postgresql+psycopg2://myuser:mypassword@localhost:5432/mydatabase"
 engine = create_engine(DATABASE_URL)
 
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+session = SessionLocal()
+
 class Base(DeclarativeBase):
     pass
 
