@@ -4,6 +4,7 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from typing import List
 from datetime import date, datetime
 import enum
+from filter_event import filter_event
 
 DATABASE_URL = "postgresql+psycopg2://myuser:mypassword@localhost:5432/mydatabase"
 engine = create_engine(DATABASE_URL)
@@ -143,6 +144,5 @@ class Group(Base):
         secondary=user_group,
         back_populates="groups"
     )
-    
 
-     
+         
