@@ -57,6 +57,8 @@ class Event(Base):
     date_event: Mapped[date] = mapped_column(Date, nullable=False)
     datetime_event: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     
+    
+    
 class Invitation(Base):
     __tablename__ = "invitations"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -67,6 +69,16 @@ class Invitation(Base):
     event = relationship("Event", back_populates="invitations")
     invited_user = relationship("User", back_populates="recieved_invatat")
     inviter_user = relationship("User", back_populates="sent_user") 
+    
+    def accept(self, session):
+        self.status = Status.accepted
+        session.commit()
+    
+    def decline(self, session):
+        self.status = Status.declined
+        session.commit()
+        
+    
     
 class Comment(Base):
     __tablename__ = "comments"
