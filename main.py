@@ -5,6 +5,7 @@ from typing import List
 from datetime import date, datetime
 import enum
 from filter_event import filter_event
+from sqlalchemy.exc import IntegrityError
 
 DATABASE_URL = "postgresql+psycopg2://myuser:mypassword@localhost:5432/mydatabase"
 engine = create_engine(DATABASE_URL)
@@ -147,7 +148,7 @@ class User(Base):
             invitation = Invitation(
                 event_id=event.id,
                 invited_user_id=invited_user.id,
-                inviter_user=self.id,
+                inviter_user_id=self.id,
                 status=Status.pending
             )
             session.add(Invitation)
