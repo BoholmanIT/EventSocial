@@ -136,6 +136,7 @@ class User(Base):
     def remove_friend(self, other_user: "User", session):
         if other_user in self.friends:
             self.friends.remove(other_user)
+            other_user.friends.remove(self)
             session.commit()
     
     def can_invite(self, event: Event) -> bool:
