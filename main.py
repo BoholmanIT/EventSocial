@@ -63,7 +63,7 @@ class Invitation(Base):
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id"), nullable=False)
     invited_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
     inviter_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False)
-    
+    status: Mapped[Status] = mapped_column(Enum(Status), default=Status.pending)
     event = relationship("Event", back_populates="invitations")
     invited_user = relationship("User", back_populates="recieved_invatat")
     inviter_user = relationship("User", back_populates="sent_user") 
