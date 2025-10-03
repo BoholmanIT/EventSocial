@@ -130,6 +130,7 @@ class User(Base):
     def add_friend(self, other_user: "User", session):
         if other_user not in self.friends:
             self.friends.append(other_user)
+            other_user.friends.append(self)
             session.commit()
             
     def remove_friend(self, other_user: "User", session):
