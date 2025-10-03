@@ -79,32 +79,47 @@ class Comment(Base):
     
 class User(Base):
     __tablename__ = "users"
+    
     id: Mapped[int] = mapped_column(primary_key=True)
     login: Mapped[str] = mapped_column(String(100), nullable=False)
     password: Mapped[str] = mapped_column(String(20), nullable=False)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     fullname: Mapped[str | None] = mapped_column(String(100), nullable=True)
     nickname: Mapped[str] = mapped_column(String(20))
+    
     events = relationship(
         "Event",
         secondary=user_events,
         back_populates="user_in_event"
     )
+    
     groups = relationship(
         "Group",
         secondary=user_group,
         back_populates="user_in_group"
     )
-    friends: Mapped[List["User"]] = relationship(
+    
+    friends = relationship(
         "User", 
         secondary=friendships, 
         primaryjoin=id == friendships.c.user_id, 
         secondaryjoin=id == friendships.c.friend_id, 
         backref="friends_back"
     )
+    
     recieved_invat = relationship("Invitation", foreign_keys=[Invitation.invited_user_id], back_populates="invited_user")
     sent_user = relationship("Invitation", foreign_keys=[Invitation.inviter_user_id], back_populates="inviter_user")
     comments= relationship("Comment", foreign_keys=[Comment.commenter_user_id], back_populates="commenter_user")
+    
+    def add_friend(self, other_user: "User", session):
+        if other_user not in self.friends:
+            self.friends.append(other_user)
+            session.comit()
+            
+    def remove_friend(self, other_user: "User", session):
+        if other_user in self.friends:
+            self.friends.remove(other_user)
+            session.commit()
     
 class Group(Base):
     __tablename__ = "groups"
