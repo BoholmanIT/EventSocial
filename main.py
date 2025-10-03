@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime, Enum
+from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime, Enum, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from typing import List
@@ -79,6 +79,8 @@ class Invitation(Base):
         self.status = Status.declined
         session.commit()
         
+    __table_args__ = (UniqueConstraint("event_id", "invited_user_id", name="_event_invited_user_uc"),)
+        
     
     
 class Comment(Base):
@@ -141,23 +143,20 @@ class User(Base):
         if not self.can_invite(event):
             return False
         
-        existing_invatation = session.query(Invitation).filter_by(
-            event_id=event.id,
-            invited_user_id=invited_user.id
-        ).first()
-        
-        if existing_invatation:
+        try:
+            invitation = Invitation(
+                event_id=event.id,
+                invited_user_id=invited_user.id,
+                inviter_user=self.id,
+                status=Status.pending
+            )
+            session.add(Invitation)
+            session.commit()
+            return True
+        except IntegrityError:
+            session.rollback()
             return False
         
-        invitation = Invitation(
-            event_id=event.id,
-            invited_user_id=invited_user.id,
-            inviter_user=self.id,
-            status=Status.pending
-        )
-        session.add(Invitation)
-        session.commit()
-        return True
         
     
 class Group(Base):
