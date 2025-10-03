@@ -127,7 +127,7 @@ class User(Base):
     def add_friend(self, other_user: "User", session):
         if other_user not in self.friends:
             self.friends.append(other_user)
-            session.comit()
+            session.commit()
             
     def remove_friend(self, other_user: "User", session):
         if other_user in self.friends:
@@ -149,7 +149,7 @@ class User(Base):
         if existing_invatation:
             return False
         
-        Invitation = Invitation(
+        invitation = Invitation(
             event_id=event.id,
             invited_user_id=invited_user.id,
             inviter_user=self.id,
