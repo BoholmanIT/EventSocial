@@ -1,10 +1,11 @@
-from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime, Enum
+from sqlalchemy import create_engine, Integer, String, ForeignKey, Table, Column, Date, DateTime, Enum, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 from typing import List
 from datetime import date, datetime
 import enum
 from filter_event import filter_event
+from sqlalchemy.exc import IntegrityError
 
 DATABASE_URL = "postgresql+psycopg2://myuser:mypassword@localhost:5432/mydatabase"
 engine = create_engine(DATABASE_URL)
@@ -79,6 +80,8 @@ class Invitation(Base):
         self.status = Status.declined
         session.commit()
         
+    __table_args__ = (UniqueConstraint("event_id", "invited_user_id", name="_event_invited_user_uc"),)
+        
     
     
 class Comment(Base):
@@ -127,11 +130,13 @@ class User(Base):
     def add_friend(self, other_user: "User", session):
         if other_user not in self.friends:
             self.friends.append(other_user)
-            session.comit()
+            other_user.friends.append(self)
+            session.commit()
             
     def remove_friend(self, other_user: "User", session):
         if other_user in self.friends:
             self.friends.remove(other_user)
+            other_user.friends.remove(self)
             session.commit()
     
     def can_invite(self, event: Event) -> bool:
@@ -141,23 +146,20 @@ class User(Base):
         if not self.can_invite(event):
             return False
         
-        existing_invatation = session.query(Invitation).filter_by(
-            event_id=event.id,
-            invited_user_id=invited_user.id
-        ).first()
-        
-        if existing_invatation:
+        try:
+            invitation = Invitation(
+                event_id=event.id,
+                invited_user_id=invited_user.id,
+                inviter_user_id=self.id,
+                status=Status.pending
+            )
+            session.add(Invitation)
+            session.commit()
+            return True
+        except IntegrityError:
+            session.rollback()
             return False
         
-        Invitation = Invitation(
-            event_id=event.id,
-            invited_user_id=invited_user.id,
-            inviter_user=self.id,
-            status=Status.pending
-        )
-        session.add(Invitation)
-        session.commit()
-        return True
         
     
 class Group(Base):
