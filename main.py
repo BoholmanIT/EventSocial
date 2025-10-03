@@ -134,6 +134,10 @@ class User(Base):
             self.friends.remove(other_user)
             session.commit()
     
+    def can_invite(self, event: Event) -> bool:
+        return self in Event.user_in_event
+        
+    
 class Group(Base):
     __tablename__ = "groups"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
