@@ -134,6 +134,32 @@ class User(Base):
             self.friends.remove(other_user)
             session.commit()
     
+    def can_invite(self, event: Event) -> bool:
+        return self in event.user_in_event
+    
+    def send(self, event: Event, invited_user: "User", session) -> bool:
+        if not self.can_invite(event):
+            return False
+        
+        existing_invatation = session.query(Invitation).filter_by(
+            event_id=event.id,
+            invited_user_id=invited_user.id
+        ).first()
+        
+        if existing_invatation:
+            return False
+        
+        Invitation = Invitation(
+            event_id=event.id,
+            invited_user_id=invited_user.id,
+            inviter_user=self.id,
+            status=Status.pending
+        )
+        session.add(Invitation)
+        session.commit()
+        return True
+        
+    
 class Group(Base):
     __tablename__ = "groups"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
