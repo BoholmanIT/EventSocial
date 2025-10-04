@@ -93,6 +93,23 @@ class Comment(Base):
     commenter_user = relationship("User", back_populates="comments")
     event = relationship("Event", back_populates="comments")
     
+    def create_comment(self, user: "User", event: "Event", text, session) -> bool:
+        try:
+            comment = Comment(
+                commenter_user_id=user,
+                comment_event_id=event,
+                text=text
+                )
+            session.add(comment)
+            session.commit()
+            return True
+        except Exception as e:
+            session.rollback()
+            return False
+        
+    
+
+    
 class User(Base):
     __tablename__ = "users"
     
